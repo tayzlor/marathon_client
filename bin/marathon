@@ -5,13 +5,15 @@ require 'slop'
 
 
 opts = Slop.parse(help: true) do
-  on '-v', 'Print the version' do
+  on :v, 'Print the version' do
     puts "Version #{Marathon::VERSION}"
   end
+
 
   command 'start' do
     description 'Start a new app.'
 
+    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
     on :i=, :id=, 'A unique identifier for the app.'
     on :C=, :command=, 'The command to start the app.'
     on :n=, :num_instances=, 'The number of instances to run (default 1).', as: Integer
@@ -21,6 +23,7 @@ opts = Slop.parse(help: true) do
     on :e=, :env=, 'Environment variables to add to the process, as NAME=VALUE.', as: Array
 
     run do |opts, args|
+      Marathon.configure(opts)
       app_opts = {
         instances: opts[:num_instances] || 1,
         uris: opts[:uri] || [],
@@ -39,10 +42,12 @@ opts = Slop.parse(help: true) do
   command 'scale' do
     description 'Scale the number of app instances.'
 
+    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
     on :i=, :id=, 'A unique identifier for the app.'
     on :n=, :num_instances=, 'The number of instances to run.', as: Integer
 
     run do |opts, args|
+      Marathon.configure(opts)
       puts "Scaling app '#{opts[:id]}' to #{opts[:num_instances]} instances"
       app = Marathon::App.new(opts[:id])
       puts app.scale(opts[:num_instances])
@@ -52,9 +57,11 @@ opts = Slop.parse(help: true) do
   command 'stop' do
     description 'Stop an app and remove it from Marathon.'
 
+    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
     on :i=, :id=, 'A unique identifier for the app.'
 
     run do |opts, args|
+      Marathon.configure(opts)
       puts "Stopping app '#{opts[:id]}'"
       app = Marathon::App.new(opts[:id])
       puts app.stop
@@ -64,21 +71,28 @@ opts = Slop.parse(help: true) do
   command 'list' do
     description 'Show a list of running apps and their options.'
 
+    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
+
     run do |opts, args|
-      list = Marathon.list_apps
-      list.each do |app|
-        puts "App ID:    #{app['id']}"
-        puts "Command:   #{app['cmd']}"
-        puts "Instances: #{app['instances']}"
-        puts "CPUs:      #{app['cpus']}"
-        puts "Memory:    #{app['mem']} MB"
-        app['uris'].each do |uri|
-          puts "URI:       #{uri}"
+      Marathon.configure(opts)
+      begin
+        list = Marathon.list_apps
+        list.each do |app|
+          puts "App ID:    #{app['id']}"
+          puts "Command:   #{app['cmd']}"
+          puts "Instances: #{app['instances']}"
+          puts "CPUs:      #{app['cpus']}"
+          puts "Memory:    #{app['mem']} MB"
+          app['uris'].each do |uri|
+            puts "URI:       #{uri}"
+          end
+          app['env'].each do |k, v|
+            puts "ENV:       #{k}=#{v}"
+          end
+          puts
         end
-        app['env'].each do |k, v|
-          puts "ENV:       #{k}=#{v}"
-        end
-        puts
+      rescue Faraday::Error::ClientError => e
+        warn "ERROR: #{e.message}"
       end
     end
   end

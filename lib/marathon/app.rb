@@ -30,7 +30,7 @@ module Marathon
         req.body = MultiJson.dump(body)
       end
       (res.status >= 200 && res.status < 300) ? 'OK' : "ERROR: Status #{res.status}"
-    rescue Faraday::Error => e
+    rescue Faraday::Error::ClientError => e
       "ERROR: #{e.message}"
     end
 
