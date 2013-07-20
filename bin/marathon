@@ -4,7 +4,7 @@ require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'maratho
 require 'slop'
 
 
-opts = Slop.parse(help: true) do
+opts = Slop.parse(:help => true) do
   on :v, 'Print the version' do
     puts "Version #{Marathon::VERSION}"
   end
@@ -16,21 +16,21 @@ opts = Slop.parse(help: true) do
     on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
     on :i=, :id=, 'A unique identifier for the app.'
     on :C=, :command=, 'The command to start the app.'
-    on :n=, :num_instances=, 'The number of instances to run (default 1).', as: Integer
-    on :c=, :cpus=, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', as: Float
-    on :m=, :mem=, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', as: Float
-    on :u=, :uri=, 'URIs to download and unpack into the working directory.', as: Array
-    on :e=, :env=, 'Environment variables to add to the process, as NAME=VALUE.', as: Array
+    on :n=, :num_instances=, 'The number of instances to run (default 1).', :as => Integer
+    on :c=, :cpus=, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :as => Float
+    on :m=, :mem=, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :as => Float
+    on :u=, :uri=, 'URIs to download and unpack into the working directory.', :as => Array
+    on :e=, :env=, 'Environment variables to add to the process, as NAME=VALUE.', :as => Array
 
     run do |opts, args|
       Marathon.configure(opts)
       app_opts = {
-        instances: opts[:num_instances] || 1,
-        uris: opts[:uri] || [],
-        cmd: opts[:command],
-        env: opts[:env].nil? ? {} : Hash[opts[:env].map { |e| e.split('=', 2) }],
-        cpus: opts[:cpus] || 1.0,
-        mem: opts[:mem] || 10.0
+        :instances => opts[:num_instances] || 1,
+        :uris => opts[:uri] || [],
+        :cmd => opts[:command],
+        :env => opts[:env].nil? ? {} : Hash[opts[:env].map { |e| e.split('=', 2) }],
+        :cpus => opts[:cpus] || 1.0,
+        :mem => opts[:mem] || 10.0
       }
 
       puts "Starting app '#{opts[:id]}'"
@@ -44,7 +44,7 @@ opts = Slop.parse(help: true) do
 
     on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
     on :i=, :id=, 'A unique identifier for the app.'
-    on :n=, :num_instances=, 'The number of instances to run.', as: Integer
+    on :n=, :num_instances=, 'The number of instances to run.', :as => Integer
 
     run do |opts, args|
       Marathon.configure(opts)

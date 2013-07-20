@@ -27,7 +27,7 @@ module Marathon
   end
 
   def self.connection
-    @connection ||= Faraday.new(url: config.server_url) do |conn|
+    @connection ||= Faraday.new(:url => config.server_url) do |conn|
       conn.headers['Content-Type'] = 'application/json'
       conn.adapter Faraday.default_adapter
     end

@@ -13,12 +13,12 @@ module Marathon
     end
 
     def scale(num_instances)
-      body = {id: @id, instances: num_instances}
+      body = {:id => @id, :instances => num_instances}
       request('/v1/apps/scale', body)
     end
 
     def stop
-      body = {id: @id}
+      body = {:id => @id}
       request('/v1/apps/stop', body)
     end
 
