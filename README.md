@@ -19,3 +19,10 @@ Or install it yourself as:
 ## Usage
 
     $ marathon --help
+
+## Development
+
+Build the gem from the repo:
+
+    $ gem build marathon.gemspec
+    $ gem install marathon-*.gem
