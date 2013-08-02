@@ -3,7 +3,7 @@ module Marathon
     include HTTParty
 
     headers 'Content-Type' => 'application/json'
-    query_string_normalizer ->(query) { MultiJson.dump(query) }
+    query_string_normalizer proc { |query| MultiJson.dump(query) }
     maintain_method_across_redirects
 
 
