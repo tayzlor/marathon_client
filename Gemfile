@@ -1,4 +1,4 @@
 source 'https://rubygems.org'
 
-# Specify your gem's dependencies in marathon.gemspec
+# Specify your gem's dependencies in marathon_client.gemspec
 gemspec

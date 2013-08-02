@@ -6,7 +6,7 @@ Client gem for the Marathon scheduler
 
 Add this line to your application's Gemfile:
 
-    gem 'marathon'
+    gem 'marathon_client'
 
 And then execute:
 
@@ -14,7 +14,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install marathon
+    $ gem install marathon_client
 
 ## Usage
 
@@ -24,5 +24,5 @@ Or install it yourself as:
 
 Build the gem from the repo:
 
-    $ gem build marathon.gemspec
-    $ gem install marathon-*.gem
+    $ gem build marathon_client.gemspec
+    $ gem install marathon_client-*.gem

@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'marathon/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "marathon"
+  spec.name          = "marathon_client"
   spec.version       = Marathon::VERSION
   spec.authors       = ["Tobi Knaup"]
   spec.email         = ["tobi@knaup.me"]
