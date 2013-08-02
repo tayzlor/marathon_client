@@ -23,7 +23,6 @@ opts = Slop.parse(:help => true) do
     on :e=, :env=, 'Environment variables to add to the process, as NAME=VALUE.', :as => Array
 
     run do |opts, args|
-      Marathon.configure(opts)
       app_opts = {
         :instances => opts[:num_instances] || 1,
         :uris => opts[:uri] || [],
@@ -34,8 +33,8 @@ opts = Slop.parse(:help => true) do
       }
 
       puts "Starting app '#{opts[:id]}'"
-      app = Marathon::App.new(opts[:id])
-      puts app.start(app_opts)
+      res = Marathon::Client.new(opts[:marathon_host]).start(opts[:id], app_opts)
+      puts res
     end
   end
 
@@ -47,10 +46,9 @@ opts = Slop.parse(:help => true) do
     on :n=, :num_instances=, 'The number of instances to run.', :as => Integer
 
     run do |opts, args|
-      Marathon.configure(opts)
       puts "Scaling app '#{opts[:id]}' to #{opts[:num_instances]} instances"
-      app = Marathon::App.new(opts[:id])
-      puts app.scale(opts[:num_instances])
+      res = Marathon::Client.new(opts[:marathon_host]).scale(opts[:id], opts[:num_instances])
+      puts res
     end
   end
 
@@ -61,10 +59,9 @@ opts = Slop.parse(:help => true) do
     on :i=, :id=, 'A unique identifier for the app.'
 
     run do |opts, args|
-      Marathon.configure(opts)
       puts "Stopping app '#{opts[:id]}'"
-      app = Marathon::App.new(opts[:id])
-      puts app.stop
+      res = Marathon::Client.new(opts[:marathon_host]).stop(opts[:id])
+      puts res
     end
   end
 
@@ -74,10 +71,9 @@ opts = Slop.parse(:help => true) do
     on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
 
     run do |opts, args|
-      Marathon.configure(opts)
-      begin
-        list = Marathon.list_apps
-        list.each do |app|
+      res = Marathon::Client.new(opts[:marathon_host]).list
+      if res.ok?
+        res.parsed_response.each do |app|
           puts "App ID:    #{app['id']}"
           puts "Command:   #{app['cmd']}"
           puts "Instances: #{app['instances']}"
@@ -91,8 +87,12 @@ opts = Slop.parse(:help => true) do
           end
           puts
         end
-      rescue Faraday::Error::ClientError => e
-        warn "ERROR: #{e.message}"
+
+        if res.parsed_response.empty?
+          puts "No apps are currently running"
+        end
+      else
+        puts res
       end
     end
   end

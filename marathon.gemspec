@@ -19,8 +19,7 @@ Gem::Specification.new do |spec|
   spec.require_paths = ["lib"]
 
   spec.add_dependency "slop", "~> 3.4.5"
-  spec.add_dependency "faraday", "~> 0.8.7"
-  spec.add_dependency "multi_json", "~> 1.7.7"
+  spec.add_dependency "httparty", "~> 0.11.0"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake"
