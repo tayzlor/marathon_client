@@ -5,6 +5,7 @@ module Marathon
     headers 'Content-Type' => 'application/json'
     query_string_normalizer proc { |query| MultiJson.dump(query) }
     maintain_method_across_redirects
+    default_timeout 5
 
 
     def initialize(host = nil)
