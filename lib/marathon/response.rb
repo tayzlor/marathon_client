@@ -9,12 +9,12 @@ module Marathon
       @error = error_message_from_response
     end
 
-    def ok?
-      @ok ||= !!@http && @http.success?
+    def success?
+      @http != nil && @http.success?
     end
 
     def error?
-      !ok?
+      !success?
     end
 
     def parsed_response
@@ -28,7 +28,7 @@ module Marathon
     end
 
     def to_s
-      if ok?
+      if success?
         "OK"
       else
         "ERROR: #{error}"
@@ -38,7 +38,7 @@ module Marathon
     private
 
     def error_message_from_response
-      return if ok?
+      return if success?
       return if @http.nil?
       @http.body
     end

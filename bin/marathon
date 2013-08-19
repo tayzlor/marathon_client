@@ -72,7 +72,7 @@ opts = Slop.parse(:help => true) do
 
     run do |opts, args|
       res = Marathon::Client.new(opts[:marathon_host]).list
-      if res.ok?
+      if res.success?
         res.parsed_response.each do |app|
           puts "App ID:    #{app['id']}"
           puts "Command:   #{app['cmd']}"
