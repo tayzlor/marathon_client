@@ -1,99 +1,103 @@
 #!/usr/bin/env ruby
 
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
-require 'slop'
+require 'trollop'
 
+SUB_COMMANDS = %w[start stop scale list]
 
-opts = Slop.parse(:help => true) do
-  on :v, 'Print the version' do
-    puts "Version #{Marathon::VERSION}"
-  end
+global_opts = Trollop.options do
+  version Marathon::VERSION
+  banner <<-EOS
+Usage: marathon [command] [options]
 
+Available commands:
 
-  command 'start' do
-    description 'Start a new app.'
+  start   Start a new app.
+  scale   Scale the number of app instances.
+  stop    Stop an app and remove it from Marathon.
+  list    Show a list of running apps and their options.
 
-    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
-    on :i=, :id=, 'A unique identifier for the app.'
-    on :C=, :command=, 'The command to start the app.'
-    on :n=, :num_instances=, 'The number of instances to run (default 1).', :as => Integer
-    on :c=, :cpus=, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :as => Float
-    on :m=, :mem=, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :as => Float
-    on :u=, :uri=, 'URIs to download and unpack into the working directory.', :as => Array
-    on :e=, :env=, 'Environment variables to add to the process, as NAME=VALUE.', :as => Array
+Global options:
+EOS
 
-    run do |opts, args|
-      app_opts = {
-        :instances => opts[:num_instances] || 1,
-        :uris => opts[:uri] || [],
-        :cmd => opts[:command],
-        :env => opts[:env].nil? ? {} : Hash[opts[:env].map { |e| e.split('=', 2) }],
-        :cpus => opts[:cpus] || 1.0,
-        :mem => opts[:mem] || 10.0
-      }
+  opt :marathon_host, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)', :short => '-H', :type => String
+  stop_on SUB_COMMANDS
+end
 
-      puts "Starting app '#{opts[:id]}'"
-      res = Marathon::Client.new(opts[:marathon_host]).start(opts[:id], app_opts)
-      puts res
+cmd = ARGV.shift # get the subcommand
+
+cmd_opts = case cmd
+  when 'start'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+      opt :command, 'The command to start the app.', :short => '-C', :type => String
+      opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
+      opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :short => '-c', :type => Float
+      opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :short => '-m', :type => Float
+      opt :uri, 'URIs to download and unpack into the working directory.', :short => '-u', :type => Array
+      opt :env, 'Environment variables to add to the process, as NAME=VALUE.', :short => '-e', :type => Array
     end
-  end
-
-  command 'scale' do
-    description 'Scale the number of app instances.'
-
-    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
-    on :i=, :id=, 'A unique identifier for the app.'
-    on :n=, :num_instances=, 'The number of instances to run.', :as => Integer
-
-    run do |opts, args|
-      puts "Scaling app '#{opts[:id]}' to #{opts[:num_instances]} instances"
-      res = Marathon::Client.new(opts[:marathon_host]).scale(opts[:id], opts[:num_instances])
-      puts res
+  when 'scale'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+      opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
     end
-  end
-
-  command 'stop' do
-    description 'Stop an app and remove it from Marathon.'
-
-    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
-    on :i=, :id=, 'A unique identifier for the app.'
-
-    run do |opts, args|
-      puts "Stopping app '#{opts[:id]}'"
-      res = Marathon::Client.new(opts[:marathon_host]).stop(opts[:id])
-      puts res
+  when 'stop'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
     end
+  else
+    {}
   end
 
-  command 'list' do
-    description 'Show a list of running apps and their options.'
+marathon = Marathon::Client.new(global_opts[:marathon_host])
 
-    on :H=, :marathon_host=, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)'
-
-    run do |opts, args|
-      res = Marathon::Client.new(opts[:marathon_host]).list
-      if res.success?
-        res.parsed_response.each do |app|
-          puts "App ID:    #{app['id']}"
-          puts "Command:   #{app['cmd']}"
-          puts "Instances: #{app['instances']}"
-          puts "CPUs:      #{app['cpus']}"
-          puts "Memory:    #{app['mem']} MB"
-          app['uris'].each do |uri|
-            puts "URI:       #{uri}"
-          end
-          app['env'].each do |k, v|
-            puts "ENV:       #{k}=#{v}"
-          end
-          puts
-        end
-
-        if res.parsed_response.empty?
-          puts "No apps are currently running"
-        end
-      else
-        puts res
+# Run
+case cmd
+when 'start'
+  app_opts = {
+    :instances => cmd_opts[:num_instances] || 1,
+    :uris => cmd_opts[:uri] || [],
+    :cmd => cmd_opts[:command],
+    :env => cmd_opts[:env].nil? ? {} : Hash[cmd_opts[:env].map { |e| e.split('=', 2) }],
+    :cpus => cmd_opts[:cpus] || 1.0,
+    :mem => cmd_opts[:mem] || 10.0
+  }
+  puts "Starting app '#{cmd_opts[:id]}'"
+  res = marathon.start(cmd_opts[:id], app_opts)
+  puts res
+when 'scale'
+  puts "Scaling app '#{cmd_opts[:id]}' to #{cmd_opts[:num_instances]} instances"
+  res = marathon.scale(cmd_opts[:id], cmd_opts[:num_instances])
+  puts res
+when 'stop'
+  puts "Stopping app '#{cmd_opts[:id]}'"
+  res = marathon.stop(cmd_opts[:id])
+  puts res
+when 'list'
+  res = marathon.list
+  if res.success?
+    res.parsed_response.each do |app|
+      puts "App ID:    #{app['id']}"
+      puts "Command:   #{app['cmd']}"
+      puts "Instances: #{app['instances']}"
+      puts "CPUs:      #{app['cpus']}"
+      puts "Memory:    #{app['mem']} MB"
+      app['uris'].each do |uri|
+        puts "URI:       #{uri}"
       end
+      app['env'].each do |k, v|
+        puts "ENV:       #{k}=#{v}"
+      end
+      puts
     end
+
+    if res.parsed_response.empty?
+      puts "No apps are currently running"
+    end
+  else
+    puts res
   end
+else
+  Trollop.die "unknown subcommand #{cmd.inspect}"
 end
