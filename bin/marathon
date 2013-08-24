@@ -21,6 +21,8 @@ Global options:
 EOS
 
   opt :marathon_host, 'Marathon host (default http://localhost:8080, or MARATHON_HOST)', :short => '-H', :type => String
+  opt :marathon_user, 'User name to authenticate against Marathon (optional).', :short => '-U', :type => String
+  opt :marathon_pass, 'Password to authenticate against Marathon (optional).', :short => '-P', :type => String
   stop_on SUB_COMMANDS
 end
 
@@ -50,7 +52,11 @@ cmd_opts = case cmd
     {}
   end
 
-marathon = Marathon::Client.new(global_opts[:marathon_host])
+marathon = Marathon::Client.new(
+  global_opts[:marathon_host],
+  global_opts[:marathon_user],
+  global_opts[:marathon_pass]
+)
 
 # Run
 case cmd
