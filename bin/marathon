@@ -36,8 +36,8 @@ cmd_opts = case cmd
       opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
       opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :short => '-c', :type => Float
       opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :short => '-m', :type => Float
-      opt :uri, 'URIs to download and unpack into the working directory.', :short => '-u', :type => Array
-      opt :env, 'Environment variables to add to the process, as NAME=VALUE.', :short => '-e', :type => Array
+      opt :uri, 'URIs to download and unpack into the working directory.', :short => '-u', :type => :strings
+      opt :env, 'Environment variables to add to the process, as NAME=VALUE.', :short => '-e', :type => :strings
     end
   when 'scale'
     Trollop.options do
