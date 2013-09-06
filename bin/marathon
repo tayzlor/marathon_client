@@ -8,7 +8,7 @@ SUB_COMMANDS = %w[start stop scale list]
 global_opts = Trollop.options do
   version Marathon::VERSION
   banner <<-EOS
-Usage: marathon [command] [options]
+Usage: marathon [global options] [command] [options]
 
 Available commands:
 
