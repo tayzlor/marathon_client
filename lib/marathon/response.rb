@@ -10,7 +10,7 @@ module Marathon
     end
 
     def success?
-      @http != nil && @http.success?
+      @http && @http.success?
     end
 
     def error?
