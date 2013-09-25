@@ -2,7 +2,10 @@ module Marathon
   class Client
     include HTTParty
 
-    headers 'Content-Type' => 'application/json'
+    headers(
+      'Content-Type' => 'application/json',
+      'Accept' => 'application/json'
+    )
     query_string_normalizer proc { |query| MultiJson.dump(query) }
     maintain_method_across_redirects
     default_timeout 5
@@ -19,6 +22,14 @@ module Marathon
 
     def list
       wrap_request(:get, '/v1/apps')
+    end
+
+    def endpoints(id = nil)
+      if id.nil?
+        wrap_request(:get, "/v1/endpoints")
+      else
+        wrap_request(:get, "/v1/endpoints/#{id}")
+      end
     end
 
     def start(id, opts)
