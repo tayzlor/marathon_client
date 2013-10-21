@@ -1,3 +1,5 @@
+require 'uri'
+
 module Marathon
   class Client
     include HTTParty
@@ -22,6 +24,14 @@ module Marathon
 
     def list
       wrap_request(:get, '/v1/apps')
+    end
+
+    def search(id=nil, cmd=nil)
+      uri = ""
+      uri = uri + "id=#{id}" unless id.nil?
+      uri = uri + "cmd=#{cmd}" unless cmd.nil?
+
+      wrap_request(:get, URI.escape('/v1/apps/search?' + uri))
     end
 
     def endpoints(id = nil)
