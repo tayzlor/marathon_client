@@ -26,12 +26,16 @@ module Marathon
       wrap_request(:get, '/v1/apps')
     end
 
+    def list_tasks(id)
+      wrap_request(:get, URI.escape("/v1/apps/#{id}/tasks"))
+    end
+
     def search(id=nil, cmd=nil)
       uri = ""
       uri = uri + "id=#{id}" unless id.nil?
       uri = uri + "cmd=#{cmd}" unless cmd.nil?
 
-      wrap_request(:get, URI.escape('/v1/apps/search?' + uri))
+      wrap_request(:get, URI.escape("/v1/apps/search?#{uri}"))
     end
 
     def endpoints(id = nil)
@@ -56,6 +60,11 @@ module Marathon
     def stop(id)
       body = {:id => id}
       wrap_request(:post, '/v1/apps/stop', :body => body)
+    end
+
+    def scale_by_task(id, host)
+      body = {}
+      wrap_request(:post, URI.escape("/v1/tasks/kill?scale=true&host=#{host}&appId=#{appId}"), :body => body)
     end
 
     private
