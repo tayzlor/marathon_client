@@ -1,3 +1,3 @@
 module Marathon
-  VERSION = "0.0.14"
+  VERSION = "0.2.0"
 end
