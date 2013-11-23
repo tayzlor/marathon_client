@@ -62,9 +62,14 @@ module Marathon
       wrap_request(:post, '/v1/apps/stop', :body => body)
     end
 
-    def kill_tasks(appId, host = '*', scale = false)
+    def kill_tasks(appId, params = {})
       body = {}
-      params = {:scale => scale, :host => host, :appId => appId}
+      params = {
+        :scale => false,
+        :host => '*',
+        :appId => appId,
+        :id => nil
+      }.merge(params)
       wrap_request(:post, "/v1/tasks/kill?#{query_params(params)}", :body => body)
     end
 
@@ -79,6 +84,7 @@ module Marathon
     end
 
     def query_params(hash)
+      hash = hash.select { |k,v| !v.nil? }
       URI.escape(hash.map { |k,v| "#{k}=#{v}" }.join('&'))
     end
   end
