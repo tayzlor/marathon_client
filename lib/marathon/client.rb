@@ -63,14 +63,15 @@ module Marathon
     end
 
     def kill_tasks(appId, params = {})
-      body = {}
-      params = {
-        :scale => false,
-        :host => '*',
-        :appId => appId,
-        :id => nil
-      }.merge(params)
-      wrap_request(:post, "/v1/tasks/kill?#{query_params(params)}", :body => body)
+      if params[:task_id].nil?
+        wrap_request(:delete, "/v2/apps/#{appId}/tasks?#{query_params(params)}")
+      else
+        query = params.clone
+        task_id = query[:task_id]
+        query.delete(:task_id)
+
+        wrap_request(:delete, "/v2/apps/#{appId}/tasks/#{task_id}?#{query_params(query)}")
+      end
     end
 
     private
