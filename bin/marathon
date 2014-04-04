@@ -3,7 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
 require 'trollop'
 
-SUB_COMMANDS = %w[start stop scale list search]
+SUB_COMMANDS = %w[start stop scale list list_tasks search]
 
 global_opts = Trollop.options do
   version Marathon::VERSION
@@ -12,11 +12,12 @@ Usage: marathon [global options] [command] [options]
 
 Available commands:
 
-  start   Start a new app.
-  scale   Scale the number of app instances.
-  stop    Stop an app and remove it from Marathon.
-  list    Show a list of running apps and their options.
-  search  Search the current list of apps.
+  start       Start a new app.
+  scale       Scale the number of app instances.
+  stop        Stop an app and remove it from Marathon.
+  list        Show a list of running apps and their options.
+  list_tasks  Show a list of an app's running tasks.
+  search      Search the current list of apps.
 
 Global options:
 EOS
@@ -30,6 +31,10 @@ end
 cmd = ARGV.shift # get the subcommand
 
 cmd_opts = case cmd
+  when 'list_tasks'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :required => true, :type => String
+    end
   when 'start'
     Trollop.options do
       opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
@@ -121,6 +126,8 @@ when 'stop'
   puts marathon.stop(cmd_opts[:id])
 when 'list'
   handle_listing(marathon.list)
+when 'list_tasks'
+  puts marathon.list_tasks(cmd_opts[:id]).parsed_response
 when 'search'
   handle_listing(marathon.search(cmd_opts[:id], cmd_opts[:command]))
 else

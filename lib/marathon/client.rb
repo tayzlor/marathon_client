@@ -27,7 +27,7 @@ module Marathon
     end
 
     def list_tasks(id)
-      wrap_request(:get, URI.escape("/v1/apps/#{id}/tasks"))
+      wrap_request(:get, URI.escape("/v2/apps/#{id}/tasks"))
     end
 
     def search(id = nil, cmd = nil)
