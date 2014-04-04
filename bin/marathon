@@ -3,7 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
 require 'trollop'
 
-SUB_COMMANDS = %w[kill kill_tasks start scale list list_tasks search]
+SUB_COMMANDS = %w[endpoints kill kill_tasks start scale list list_tasks search]
 
 global_opts = Trollop.options do
   version Marathon::VERSION
@@ -32,6 +32,10 @@ end
 cmd = ARGV.shift # get the subcommand
 
 cmd_opts = case cmd
+  when 'endpoints'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+    end
   when 'kill_tasks'
     Trollop.options do
       opt :host, 'Scope task killing to the given host.', :short => '-H', :type => String
@@ -112,6 +116,8 @@ end
 
 # Run
 case cmd
+when 'endpoints'
+  puts marathon.endpoints(cmd_opts[:id]).parsed_response
 when 'start'
   app_opts = {
     :instances => cmd_opts[:num_instances] || 1,

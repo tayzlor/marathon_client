@@ -44,10 +44,15 @@ module Marathon
 
     def endpoints(id = nil)
       if id.nil?
-        wrap_request(:get, "/v1/endpoints")
+        url = "/v2/tasks"
       else
-        wrap_request(:get, "/v1/endpoints/#{id}")
+        url = "/v2/apps/#{id}/tasks"
       end
+
+      wrap_request(:get, url, :headers => {
+        "Accept" => "text/plain",
+        "Content-type" => "text/plain"
+      })
     end
 
     def start(id, opts)
