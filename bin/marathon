@@ -49,7 +49,7 @@ cmd_opts = case cmd
     end
   when 'start'
     Trollop.options do
-      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+      opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
       opt :command, 'The command to start the app.', :short => '-C', :type => String
       opt :executor, 'The mesos executor to be used to launch the app.', :short => '-X', :type => String
       opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
