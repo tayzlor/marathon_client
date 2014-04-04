@@ -68,27 +68,30 @@ marathon = Marathon::Client.new(
 
 def handle_listing(res)
   if res.success?
-    res.parsed_response.each do |app|
-      puts "App ID:     #{app['id']}"
-      puts "Command:    #{app['cmd']}"
-      puts "Instances:  #{app['instances']}"
-      puts "CPUs:       #{app['cpus']}"
-      puts "Memory:     #{app['mem']} MB"
-      app['uris'].each do |uri|
-        puts "URI:        #{uri}"
+    apps = res.parsed_response['apps']
+
+    if apps.empty?
+      puts "No apps currently running"
+    else
+      apps.each do |app|
+        puts "App ID:     #{app['id']}"
+        puts "Command:    #{app['cmd']}"
+        puts "Instances:  #{app['instances']}"
+        puts "CPUs:       #{app['cpus']}"
+        puts "Memory:     #{app['mem']} MB"
+        app['uris'].each do |uri|
+          puts "URI:        #{uri}"
+        end
+        app['env'].each do |k, v|
+          puts "ENV:        #{k}=#{v}"
+        end
+        app['constraints'].each do |constraint|
+          puts "Constraint: #{constraint.join(':')}"
+        end
+        puts
       end
-      app['env'].each do |k, v|
-        puts "ENV:        #{k}=#{v}"
-      end
-      app['constraints'].each do |constraint|
-        puts "Constraint: #{constraint.join(':')}"
-      end
-      puts
     end
 
-    if res.parsed_response.empty?
-      puts "No apps are currently running"
-    end
   else
     puts res
   end

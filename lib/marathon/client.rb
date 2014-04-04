@@ -23,7 +23,7 @@ module Marathon
     end
 
     def list
-      wrap_request(:get, '/v1/apps')
+      wrap_request(:get, '/v2/apps')
     end
 
     def list_tasks(id)
