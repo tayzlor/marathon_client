@@ -12,6 +12,9 @@ module Marathon
     maintain_method_across_redirects
     default_timeout 5
 
+    EDITABLE_APP_ATTRIBUTES = [
+      :cmd, :constraints, :container, :cpus, :env, :executor, :id, :instances,
+      :mem, :ports, :uris]
 
     def initialize(host = nil, user = nil, pass = nil)
       @host = host || ENV['MARATHON_HOST'] || 'http://localhost:8080'
@@ -53,8 +56,14 @@ module Marathon
     end
 
     def scale(id, num_instances)
-      body = {:id => id, :instances => num_instances}
-      wrap_request(:post, '/v1/apps/scale', :body => body)
+      # Fetch current state and update only the 'instances' attribute. Since the
+      # API only supports PUT, the full representation of the app must be
+      # supplied to update even just a single attribute.
+      app = wrap_request(:get, "/v2/apps/#{id}").parsed_response['app']
+      app.select! {|k, v| EDITABLE_APP_ATTRIBUTES.include?(k)}
+
+      app[:instances] = num_instances
+      wrap_request(:put, "/v2/apps/#{id}", :body => app)
     end
 
     def stop(id)
