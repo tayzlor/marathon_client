@@ -3,7 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
 require 'trollop'
 
-SUB_COMMANDS = %w[kill_tasks start stop scale list list_tasks search]
+SUB_COMMANDS = %w[kill kill_tasks start scale list list_tasks search]
 
 global_opts = Trollop.options do
   version Marathon::VERSION
@@ -12,13 +12,13 @@ Usage: marathon [global options] [command] [options]
 
 Available commands:
 
+  kill        Kill an app and remove it from Marathon.
   kill_tasks  Kill a task or tasks belonging to a specified app.
   list        Show a list of running apps and their options.
   list_tasks  Show a list of an app's running tasks.
   scale       Scale the number of app instances.
   search      Search the current list of apps.
   start       Start a new app.
-  stop        Stop an app and remove it from Marathon.
 
 Global options:
 EOS
@@ -60,9 +60,9 @@ cmd_opts = case cmd
       opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
       opt :num_instances, 'The number of instances to run (default 1).', :required => true, :short => '-n', :type => Integer
     end
-  when 'stop'
+  when 'kill'
     Trollop.options do
-      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+      opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
     end
   when 'search'
     Trollop.options do
@@ -129,9 +129,9 @@ when 'scale'
   puts "Scaling app '#{cmd_opts[:id]}' to #{cmd_opts[:num_instances]} instances"
   res = marathon.scale(cmd_opts[:id], cmd_opts[:num_instances])
   puts res
-when 'stop'
-  puts "Stopping app '#{cmd_opts[:id]}'"
-  puts marathon.stop(cmd_opts[:id])
+when 'kill'
+  puts "Killing app '#{cmd_opts[:id]}'"
+  puts marathon.kill(cmd_opts[:id])
 when 'kill_tasks'
   KILL_TASKS_KEYS = [:host, :scale, :task_id]
 

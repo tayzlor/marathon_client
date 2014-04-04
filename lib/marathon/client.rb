@@ -8,6 +8,7 @@ module Marathon
       'Content-Type' => 'application/json',
       'Accept' => 'application/json'
     )
+
     query_string_normalizer proc { |query| MultiJson.dump(query) }
     maintain_method_across_redirects
     default_timeout 5
@@ -66,9 +67,8 @@ module Marathon
       wrap_request(:put, "/v2/apps/#{id}", :body => app)
     end
 
-    def stop(id)
-      body = {:id => id}
-      wrap_request(:delete, "/v2/apps/#{id}", :body => body)
+    def kill(id)
+      wrap_request(:delete, "/v2/apps/#{id}")
     end
 
     def kill_tasks(appId, params = {})
