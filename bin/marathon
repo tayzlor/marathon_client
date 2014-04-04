@@ -111,16 +111,14 @@ when 'start'
   }
   app_opts[:executor] = cmd_opts[:executor] unless cmd_opts[:executor] == nil
   puts "Starting app '#{cmd_opts[:id]}'"
-  res = marathon.start(cmd_opts[:id], app_opts)
-  puts res
+  puts marathon.start(cmd_opts[:id], app_opts)
 when 'scale'
   puts "Scaling app '#{cmd_opts[:id]}' to #{cmd_opts[:num_instances]} instances"
   res = marathon.scale(cmd_opts[:id], cmd_opts[:num_instances])
   puts res
 when 'stop'
   puts "Stopping app '#{cmd_opts[:id]}'"
-  res = marathon.stop(cmd_opts[:id])
-  puts res
+  puts marathon.stop(cmd_opts[:id])
 when 'list'
   handle_listing(marathon.list)
 when 'search'

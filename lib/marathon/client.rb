@@ -59,7 +59,7 @@ module Marathon
 
     def stop(id)
       body = {:id => id}
-      wrap_request(:post, '/v1/apps/stop', :body => body)
+      wrap_request(:delete, "/v2/apps/#{id}", :body => body)
     end
 
     def kill_tasks(appId, params = {})
