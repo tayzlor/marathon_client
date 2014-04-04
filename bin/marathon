@@ -52,9 +52,9 @@ cmd_opts = case cmd
       opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
       opt :command, 'The command to start the app.', :short => '-C', :type => String
       opt :executor, 'The mesos executor to be used to launch the app.', :short => '-X', :type => String
-      opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
-      opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :short => '-c', :type => Float
-      opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :short => '-m', :type => Float
+      opt :num_instances, 'The number of instances to run (default 1).', :default => 1, :short => '-n'
+      opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :default => 1.0, :short => '-c'
+      opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :default => 10.0, :short => '-m'
       opt :uri, 'URIs to download and unpack into the working directory.', :short => '-u', :type => :strings
       opt :env, 'Environment variables to add to the process, as NAME=VALUE.', :short => '-e', :type => :strings
       opt :constraint, 'Placement constraint for tasks, e.g. hostname:UNIQUE or rackid:CLUSTER', :type => :strings
