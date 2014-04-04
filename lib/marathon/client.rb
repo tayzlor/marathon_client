@@ -49,7 +49,7 @@ module Marathon
     def start(id, opts)
       body = opts.dup
       body[:id] = id
-      wrap_request(:post, '/v1/apps/start', :body => body)
+      wrap_request(:post, '/v2/apps/', :body => body)
     end
 
     def scale(id, num_instances)
