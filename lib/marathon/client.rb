@@ -8,10 +8,14 @@ module Marathon
       'Content-Type' => 'application/json',
       'Accept' => 'application/json'
     )
+
     query_string_normalizer proc { |query| MultiJson.dump(query) }
     maintain_method_across_redirects
     default_timeout 5
 
+    EDITABLE_APP_ATTRIBUTES = [
+      :cmd, :constraints, :container, :cpus, :env, :executor, :id, :instances,
+      :mem, :ports, :uris]
 
     def initialize(host = nil, user = nil, pass = nil)
       @host = host || ENV['MARATHON_HOST'] || 'http://localhost:8080'
@@ -23,11 +27,11 @@ module Marathon
     end
 
     def list
-      wrap_request(:get, '/v1/apps')
+      wrap_request(:get, '/v2/apps')
     end
 
     def list_tasks(id)
-      wrap_request(:get, URI.escape("/v1/apps/#{id}/tasks"))
+      wrap_request(:get, URI.escape("/v2/apps/#{id}/tasks"))
     end
 
     def search(id = nil, cmd = nil)
@@ -40,37 +44,48 @@ module Marathon
 
     def endpoints(id = nil)
       if id.nil?
-        wrap_request(:get, "/v1/endpoints")
+        url = "/v2/tasks"
       else
-        wrap_request(:get, "/v1/endpoints/#{id}")
+        url = "/v2/apps/#{id}/tasks"
       end
+
+      wrap_request(:get, url, :headers => {
+        "Accept" => "text/plain",
+        "Content-type" => "text/plain"
+      })
     end
 
     def start(id, opts)
       body = opts.dup
       body[:id] = id
-      wrap_request(:post, '/v1/apps/start', :body => body)
+      wrap_request(:post, '/v2/apps/', :body => body)
     end
 
     def scale(id, num_instances)
-      body = {:id => id, :instances => num_instances}
-      wrap_request(:post, '/v1/apps/scale', :body => body)
+      # Fetch current state and update only the 'instances' attribute. Since the
+      # API only supports PUT, the full representation of the app must be
+      # supplied to update even just a single attribute.
+      app = wrap_request(:get, "/v2/apps/#{id}").parsed_response['app']
+      app.select! {|k, v| EDITABLE_APP_ATTRIBUTES.include?(k)}
+
+      app[:instances] = num_instances
+      wrap_request(:put, "/v2/apps/#{id}", :body => app)
     end
 
-    def stop(id)
-      body = {:id => id}
-      wrap_request(:post, '/v1/apps/stop', :body => body)
+    def kill(id)
+      wrap_request(:delete, "/v2/apps/#{id}")
     end
 
     def kill_tasks(appId, params = {})
-      body = {}
-      params = {
-        :scale => false,
-        :host => '*',
-        :appId => appId,
-        :id => nil
-      }.merge(params)
-      wrap_request(:post, "/v1/tasks/kill?#{query_params(params)}", :body => body)
+      if params[:task_id].nil?
+        wrap_request(:delete, "/v2/apps/#{appId}/tasks?#{query_params(params)}")
+      else
+        query = params.clone
+        task_id = query[:task_id]
+        query.delete(:task_id)
+
+        wrap_request(:delete, "/v2/apps/#{appId}/tasks/#{task_id}?#{query_params(query)}")
+      end
     end
 
     private

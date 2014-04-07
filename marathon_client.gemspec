@@ -7,10 +7,10 @@ Gem::Specification.new do |spec|
   spec.name          = "marathon_client"
   spec.version       = Marathon::VERSION
   spec.authors       = ["Tobi Knaup"]
-  spec.email         = ["tobi@knaup.me"]
+  spec.email         = ["tobi@mesosphere.io"]
   spec.description   = %q{Command line client for the Marathon scheduler. Marathon is a Mesos scheduler for long running services.}
   spec.summary       = %q{Command line client for the Marathon scheduler.}
-  spec.homepage      = "http://www.mesosphe.re"
+  spec.homepage      = "https://github.com/mesosphere/marathon_client"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)

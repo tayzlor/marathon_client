@@ -3,7 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
 require 'trollop'
 
-SUB_COMMANDS = %w[start stop scale list search]
+SUB_COMMANDS = %w[endpoints kill kill_tasks start scale list list_tasks search]
 
 global_opts = Trollop.options do
   version Marathon::VERSION
@@ -12,11 +12,13 @@ Usage: marathon [global options] [command] [options]
 
 Available commands:
 
-  start   Start a new app.
-  scale   Scale the number of app instances.
-  stop    Stop an app and remove it from Marathon.
-  list    Show a list of running apps and their options.
-  search  Search the current list of apps.
+  kill        Kill an app and remove it from Marathon.
+  kill_tasks  Kill a task or tasks belonging to a specified app.
+  list        Show a list of running apps and their options.
+  list_tasks  Show a list of an app's running tasks.
+  scale       Scale the number of app instances.
+  search      Search the current list of apps.
+  start       Start a new app.
 
 Global options:
 EOS
@@ -30,26 +32,41 @@ end
 cmd = ARGV.shift # get the subcommand
 
 cmd_opts = case cmd
-  when 'start'
+  when 'endpoints'
     Trollop.options do
       opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+    end
+  when 'kill_tasks'
+    Trollop.options do
+      opt :host, 'Scope task killing to the given host.', :short => '-H', :type => String
+      opt :id, 'A unique identifier for the app.', :short => '-i', :required => true, :type => String
+      opt :scale, 'If true, the app is scaled down after killing tasks', :short => '-s'
+      opt :task_id, 'A unique identifier for the task.', :short => '-t', :type => String
+    end
+  when 'list_tasks'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :short => '-i', :required => true, :type => String
+    end
+  when 'start'
+    Trollop.options do
+      opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
       opt :command, 'The command to start the app.', :short => '-C', :type => String
       opt :executor, 'The mesos executor to be used to launch the app.', :short => '-X', :type => String
-      opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
-      opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :short => '-c', :type => Float
-      opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :short => '-m', :type => Float
+      opt :num_instances, 'The number of instances to run (default 1).', :default => 1, :short => '-n'
+      opt :cpus, 'The number of CPUs to give to this app, can be a fraction (default 1.0).', :default => 1.0, :short => '-c'
+      opt :mem, 'The memory limit for this app, in MB, can be a fraction (default 10.0).', :default => 10.0, :short => '-m'
       opt :uri, 'URIs to download and unpack into the working directory.', :short => '-u', :type => :strings
       opt :env, 'Environment variables to add to the process, as NAME=VALUE.', :short => '-e', :type => :strings
       opt :constraint, 'Placement constraint for tasks, e.g. hostname:UNIQUE or rackid:CLUSTER', :type => :strings
     end
   when 'scale'
     Trollop.options do
-      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
-      opt :num_instances, 'The number of instances to run (default 1).', :short => '-n', :type => Integer
+      opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
+      opt :num_instances, 'The number of instances to run.', :required => true, :short => '-n', :type => Integer
     end
-  when 'stop'
+  when 'kill'
     Trollop.options do
-      opt :id, 'A unique identifier for the app.', :short => '-i', :type => String
+      opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
     end
   when 'search'
     Trollop.options do
@@ -68,27 +85,30 @@ marathon = Marathon::Client.new(
 
 def handle_listing(res)
   if res.success?
-    res.parsed_response.each do |app|
-      puts "App ID:     #{app['id']}"
-      puts "Command:    #{app['cmd']}"
-      puts "Instances:  #{app['instances']}"
-      puts "CPUs:       #{app['cpus']}"
-      puts "Memory:     #{app['mem']} MB"
-      app['uris'].each do |uri|
-        puts "URI:        #{uri}"
+    apps = res.parsed_response['apps']
+
+    if apps.empty?
+      puts "No apps currently running"
+    else
+      apps.each do |app|
+        puts "App ID:     #{app['id']}"
+        puts "Command:    #{app['cmd']}"
+        puts "Instances:  #{app['instances']}"
+        puts "CPUs:       #{app['cpus']}"
+        puts "Memory:     #{app['mem']} MB"
+        app['uris'].each do |uri|
+          puts "URI:        #{uri}"
+        end
+        app['env'].each do |k, v|
+          puts "ENV:        #{k}=#{v}"
+        end
+        app['constraints'].each do |constraint|
+          puts "Constraint: #{constraint.join(':')}"
+        end
+        puts
       end
-      app['env'].each do |k, v|
-        puts "ENV:        #{k}=#{v}"
-      end
-      app['constraints'].each do |constraint|
-        puts "Constraint: #{constraint.join(':')}"
-      end
-      puts
     end
 
-    if res.parsed_response.empty?
-      puts "No apps are currently running"
-    end
   else
     puts res
   end
@@ -96,6 +116,8 @@ end
 
 # Run
 case cmd
+when 'endpoints'
+  puts marathon.endpoints(cmd_opts[:id]).parsed_response
 when 'start'
   app_opts = {
     :instances => cmd_opts[:num_instances] || 1,
@@ -108,18 +130,25 @@ when 'start'
   }
   app_opts[:executor] = cmd_opts[:executor] unless cmd_opts[:executor] == nil
   puts "Starting app '#{cmd_opts[:id]}'"
-  res = marathon.start(cmd_opts[:id], app_opts)
-  puts res
+  puts marathon.start(cmd_opts[:id], app_opts)
 when 'scale'
   puts "Scaling app '#{cmd_opts[:id]}' to #{cmd_opts[:num_instances]} instances"
   res = marathon.scale(cmd_opts[:id], cmd_opts[:num_instances])
   puts res
-when 'stop'
-  puts "Stopping app '#{cmd_opts[:id]}'"
-  res = marathon.stop(cmd_opts[:id])
-  puts res
+when 'kill'
+  puts "Killing app '#{cmd_opts[:id]}'"
+  puts marathon.kill(cmd_opts[:id])
+when 'kill_tasks'
+  KILL_TASKS_KEYS = [:host, :scale, :task_id]
+
+  opts = cmd_opts.clone
+  opts.select! {|k, v| KILL_TASKS_KEYS.include?(k)}
+
+  puts marathon.kill_tasks(cmd_opts[:id], opts).parsed_response
 when 'list'
   handle_listing(marathon.list)
+when 'list_tasks'
+  puts marathon.list_tasks(cmd_opts[:id]).parsed_response
 when 'search'
   handle_listing(marathon.search(cmd_opts[:id], cmd_opts[:command]))
 else
