@@ -62,7 +62,7 @@ cmd_opts = case cmd
   when 'scale'
     Trollop.options do
       opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
-      opt :num_instances, 'The number of instances to run (default 1).', :required => true, :short => '-n', :type => Integer
+      opt :num_instances, 'The number of instances to run.', :required => true, :short => '-n', :type => Integer
     end
   when 'kill'
     Trollop.options do
