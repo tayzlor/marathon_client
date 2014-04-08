@@ -39,7 +39,7 @@ module Marathon
       params[:id] = id unless id.nil?
       params[:cmd] = cmd unless cmd.nil?
 
-      wrap_request(:get, "/v1/apps/search?#{query_params(params)}")
+      wrap_request(:get, "/v2/apps?#{query_params(params)}")
     end
 
     def endpoints(id = nil)
