@@ -17,12 +17,19 @@ module Marathon
       :cmd, :constraints, :container, :cpus, :env, :executor, :id, :instances,
       :mem, :ports, :uris]
 
-    def initialize(host = nil, user = nil, pass = nil)
+    def initialize(host = nil, user = nil, pass = nil, proxy = nil)
       @host = host || ENV['MARATHON_HOST'] || 'http://localhost:8080'
       @default_options = {}
 
       if user && pass
         @default_options[:basic_auth] = {:username => user, :password => pass}
+      end
+      
+      if proxy
+        @default_options[:http_proxyaddr] = proxy[:addr]
+        @default_options[:http_proxyport] = proxy[:port]
+        @default_options[:http_proxyuser] = proxy[:user] if proxy[:user]
+        @default_options[:http_proxypass] = proxy[:pass] if proxy[:pass]
       end
     end
 
