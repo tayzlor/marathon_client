@@ -24,7 +24,7 @@ module Marathon
       if user && pass
         @default_options[:basic_auth] = {:username => user, :password => pass}
       end
-      
+
       if proxy
         @default_options[:http_proxyaddr] = proxy[:addr]
         @default_options[:http_proxyport] = proxy[:port]
@@ -56,10 +56,7 @@ module Marathon
         url = "/v2/apps/#{id}/tasks"
       end
 
-      wrap_request(:get, url, :headers => {
-        "Accept" => "text/plain",
-        "Content-type" => "text/plain"
-      })
+      wrap_request(:get, url)
     end
 
     def start(id, opts)
