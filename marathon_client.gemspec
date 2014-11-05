@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "trollop", "~> 2.0"
   spec.add_dependency "httparty", "~> 0.11"
+  spec.add_dependency "multi_json", "~> 0"
 
   spec.add_development_dependency "bundler", "~> 1.3"
   spec.add_development_dependency "rake", "~> 0"
