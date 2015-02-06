@@ -3,7 +3,7 @@
 require File.expand_path(File.join(File.dirname(__FILE__), '..', 'lib', 'marathon'))
 require 'trollop'
 
-SUB_COMMANDS = %w[endpoints kill kill_tasks start scale list list_tasks search]
+SUB_COMMANDS = %w[endpoints kill kill_tasks start scale list list_tasks search deploy]
 
 global_opts = Trollop.options do
   version Marathon::VERSION
@@ -18,6 +18,7 @@ Available commands:
   list_tasks  Show a list of an app's running tasks.
   scale       Scale the number of app instances.
   search      Search the current list of apps.
+  deploy      Deploy an app.
   start       Start a new app.
 
 Global options:
@@ -151,6 +152,11 @@ when 'list_tasks'
   puts marathon.list_tasks(cmd_opts[:id]).parsed_response
 when 'search'
   handle_listing(marathon.search(cmd_opts[:id], cmd_opts[:command]))
+when 'deploy'
+  json_file = ARGV.shift
+  puts "Deploying app '#{json_file}'"
+  res = marathon.deploy(json_file)
+  puts res
 else
   Trollop.die "unknown subcommand #{cmd.inspect}"
 end

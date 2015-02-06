@@ -1,4 +1,5 @@
 require 'uri'
+require 'multi_json'
 
 module Marathon
   class Client
@@ -62,6 +63,26 @@ module Marathon
     def start(id, opts)
       body = opts.dup
       body[:id] = id
+      wrap_request(:post, '/v2/apps/', :body => body)
+    end
+
+    def deploy(json_file)
+      begin
+        file = File.read(json_file)
+      rescue Exception => e
+        puts e.message
+        exit 1
+      else
+        begin
+          body = MultiJson.load(file)
+        rescue MultiJson::ParseError => exception
+          exception.data # => "{invalid json}"
+          exception.cause # => JSON::ParserError: 795: unexpected token at '{invalid json}'
+          puts exception.message
+          exit 1
+        end
+      end
+
       wrap_request(:post, '/v2/apps/', :body => body)
     end
 
