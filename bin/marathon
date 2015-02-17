@@ -157,6 +157,9 @@ when 'deploy'
   puts "Deploying app '#{json_file}'"
   res = marathon.deploy(json_file)
   puts res
+  if res.error?
+    exit 1
+  end
 else
   Trollop.die "unknown subcommand #{cmd.inspect}"
 end
