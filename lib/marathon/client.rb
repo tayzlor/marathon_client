@@ -38,6 +38,10 @@ module Marathon
       wrap_request(:get, '/v2/apps')
     end
 
+    def list_groups
+      wrap_request(:get, '/v2/groups')
+    end
+
     def list_tasks(id)
       wrap_request(:get, URI.escape("/v2/apps/#{id}/tasks"))
     end
@@ -66,6 +70,14 @@ module Marathon
       wrap_request(:post, '/v2/apps/', :body => body)
     end
 
+    def is_group?(app_hash)
+      return app_hash.has_key?('groups') || app_hash.has_key?('apps')
+    end
+
+    def get_resource_endpoint(app_hash)
+      is_group?(app_hash) ? 'groups' : 'apps'
+    end
+
     def deploy(json_file)
       begin
         file = File.read(json_file)
@@ -74,7 +86,7 @@ module Marathon
         exit 1
       else
         begin
-          body = MultiJson.load(file)
+        body = MultiJson.load(file)
         rescue MultiJson::ParseError => exception
           exception.data # => "{invalid json}"
           exception.cause # => JSON::ParserError: 795: unexpected token at '{invalid json}'
@@ -83,7 +95,7 @@ module Marathon
         end
       end
 
-      wrap_request(:post, '/v2/apps/', :body => body)
+      wrap_request(:post, "/v2/#{get_resource_endpoint(body)}/", :body => body)
     end
 
     def scale(id, num_instances)
@@ -99,6 +111,10 @@ module Marathon
 
     def kill(id)
       wrap_request(:delete, "/v2/apps/#{id}")
+    end
+
+    def kill_group(id)
+      wrap_request(:delete, "/v2/groups/#{id}")
     end
 
     def kill_tasks(appId, params = {})
