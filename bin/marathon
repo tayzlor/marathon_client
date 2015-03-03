@@ -46,7 +46,7 @@ cmd_opts = case cmd
       opt :scale, 'If true, the app is scaled down after killing tasks', :short => '-s'
       opt :task_id, 'A unique identifier for the task.', :short => '-t', :type => String
     end
-  when 'list_tasks', 'delete_group'
+  when 'list_tasks'
     Trollop.options do
       opt :id, 'A unique identifier for the app.', :short => '-i', :required => true, :type => String
     end
