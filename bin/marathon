@@ -13,12 +13,14 @@ Usage: marathon [global options] [command] [options]
 Available commands:
 
   kill        Kill an app and remove it from Marathon.
+  kill_group  Kill a group and remove it from Marathon.
   kill_tasks  Kill a task or tasks belonging to a specified app.
   list        Show a list of running apps and their options.
   list_tasks  Show a list of an app's running tasks.
+  list_groups Show a list of the running groups.
   scale       Scale the number of app instances.
   search      Search the current list of apps.
-  deploy      Deploy an app.
+  deploy      Deploy an app/group.
   start       Start a new app.
 
 Global options:
@@ -65,7 +67,7 @@ cmd_opts = case cmd
       opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
       opt :num_instances, 'The number of instances to run.', :required => true, :short => '-n', :type => Integer
     end
-  when 'kill'
+  when 'kill', 'kill_group'
     Trollop.options do
       opt :id, 'A unique identifier for the app.', :required => true, :short => '-i', :type => String
     end
@@ -139,7 +141,10 @@ when 'scale'
 when 'kill'
   puts "Killing app '#{cmd_opts[:id]}'"
   puts marathon.kill(cmd_opts[:id])
-when 'kill_tasks'
+when 'kill_group'
+  puts "Killing group '#{cmd_opts[:id]}'"
+  puts marathon.kill_group(cmd_opts[:id])
+  when 'kill_tasks'
   KILL_TASKS_KEYS = [:host, :scale, :task_id]
 
   opts = cmd_opts.clone
@@ -150,6 +155,8 @@ when 'list'
   handle_listing(marathon.list)
 when 'list_tasks'
   puts marathon.list_tasks(cmd_opts[:id]).parsed_response
+when 'list_groups'
+  puts marathon.list_groups.parsed_response
 when 'search'
   handle_listing(marathon.search(cmd_opts[:id], cmd_opts[:command]))
 when 'deploy'
